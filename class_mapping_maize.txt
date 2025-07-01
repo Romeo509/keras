@@ -1,6 +1,0 @@
-{
-  "0": "Cercospora_leaf_spot Gray_leaf_spot",
-  "1": "Common_rust",
-  "2": "Northern_Leaf_Blight",
-  "3": "healthy"
-}
