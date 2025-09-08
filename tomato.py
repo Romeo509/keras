@@ -6,47 +6,55 @@ import json
 from datetime import datetime
 
 """
-Maize Disease Classification Model
-
-Class Mappings:
-{
-    0: "Cercospora_leaf_spot Gray_leaf_spot" (Fungal infection),
-    1: "Common_rust" (Orange-brown pustules),
-    2: "Northern_Leaf_Blight" (Rectangular lesions),
-    3: "fall_armyworm" (Pest damage),
-    4: "healthy" (No disease)
-}
-
-Performance Notes:
-- Common_rust has lower accuracy (78% recall)
-- Healthy vs diseased confidence threshold: 85%
+Tomato Disease Classification Model
+(using MobileNetV2 .h5 file)
 """
 
 # Configuration
-MODEL_PATH = "maize_multi_class_model_best.keras"
+MODEL_PATH = "tomato_disease_detector_mobilenetv2.h5"
+
+# Default placeholder class names (will override if found in model metadata)
 CLASS_NAMES = [
-    "Cercospora_leaf_spot Gray_leaf_spot",
-    "Common_rust",
-    "Northern_Leaf_Blight",
-    "fall_armyworm",
-    "healthy"
+    "Bacterial_spot",
+    "Early_blight",
+    "Late_blight",
+    "Leaf_Mold",
+    "Septoria_leaf_spot",
+    "Spider_mites",
+    "Target_Spot",
+    "YellowLeaf_Curl_Virus",
+    "Mosaic_virus",
+    "Healthy"
 ]
+
 IMG_SIZE = (224, 224)
 MIN_CONFIDENCE = 0.7  # Threshold for reliable predictions
+
 
 def load_model():
     """Load and cache the TensorFlow model"""
     global model
     try:
         model = tf.keras.models.load_model(MODEL_PATH)
-        print("Model loaded successfully")
+        print(f"✅ Model loaded successfully: {MODEL_PATH}")
+
+        # Try to extract class names if available
+        if hasattr(model, "class_names"):
+            print("📌 Found class names in model metadata")
+            global CLASS_NAMES
+            CLASS_NAMES = model.class_names
+        else:
+            print("⚠️ Using default CLASS_NAMES (check training dataset for accuracy)")
+
+        print(f"📋 Class Names: {CLASS_NAMES}")
         return model
     except Exception as e:
-        raise RuntimeError(f"Model loading failed: {str(e)}")
+        raise RuntimeError(f"❌ Model loading failed: {str(e)}")
+
 
 def predict(image_path):
     """
-    Predict maize disease from image
+    Predict tomato disease from image
     
     Args:
         image_path: Path to image file (JPG/PNG)
@@ -84,32 +92,34 @@ def predict(image_path):
             "timestamp": datetime.now().isoformat()
         }
 
+
 def save_prediction(result, output_file="predictions.json"):
     """Save prediction results to JSON file"""
     with open(output_file, 'a') as f:
         json.dump(result, f)
         f.write('\n')  # Newline for multiple entries
 
+
 if __name__ == "__main__":
     # Initialize
     model = load_model()
     
     # Example usage
-    test_image = "test.jpg"  # Replace with your image path
+    test_image = "images/healthy_tomato.png"  # 🔹 Your test image
     if os.path.exists(test_image):
         result = predict(test_image)
         
         if 'error' in result:
-            print(f"Error: {result['error']}")
+            print(f"❌ Error: {result['error']}")
         else:
             # Print human-readable summary
-            print(f"\nPrediction Result:")
+            print(f"\n🍅 Prediction Result:")
             print(f"- Disease: {result['disease']}")
             print(f"- Confidence: {result['confidence']:.1%}")
             print(f"- Reliable: {'Yes' if result['is_reliable'] else 'No (low confidence)'}")
             
             # Save full results
             save_prediction(result)
-            print(f"\nFull results saved to predictions.json")
+            print(f"\n📂 Full results saved to predictions.json")
     else:
-        print(f"Error: Image not found at {test_image}")
+        print(f"❌ Error: Image not found at {test_image}")
