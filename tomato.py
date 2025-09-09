@@ -105,7 +105,7 @@ if __name__ == "__main__":
     model = load_model()
     
     # Example usage
-    test_image = "images/healthy_tomato.png"  # 🔹 Your test image
+    test_image = "images/leafmold_tomato.png"  # 🔹 Your test image
     if os.path.exists(test_image):
         result = predict(test_image)
         
